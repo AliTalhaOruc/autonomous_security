@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="husky">
+  <!-- robot name parameter -->
+  <!-- <xacro:arg name="name" default="" /> -->
+
+  <xacro:arg name="prefix" default="" />
+  <xacro:arg name="gazebo_controllers" default="$(find husky_control)/config/control.yaml" />
+
+  <xacro:include filename="$(find husky_description)/urdf/husky_macro.urdf.xacro" />
+
+  <!-- Load husky description -->
+  <xacro:husky prefix="$(arg prefix)" />
+
+
+  <xacro:if value="$(arg is_sim)">
+
+    <gazebo>
+      <plugin name="$(arg prefix)gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+        <parameters>$(arg gazebo_controllers)</parameters>
+        <ros>
+         <use_sim_time>true</use_sim_time>
+       </ros>
+      </plugin>
+    </gazebo>
+
+    <gazebo reference="$(arg prefix)imu_link">
+      <sensor name="$(arg prefix)imu_sensor" type="imu">
+      <plugin filename="libgazebo_ros_imu_sensor.so" name="$(arg prefix)imu_plugin">
+          <ros>
+            <namespace>$(arg prefix)</namespace>
+            <remapping>~/out:=imu/data_raw</remapping>
+            <use_sim_time>true</use_sim_time>
+          </ros>
+          <initial_orientation_as_reference>false</initial_orientation_as_reference>
+        </plugin>
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <visualize>true</visualize>
+      </sensor>
+    </gazebo>
+
+    <gazebo reference="$(arg prefix)gps_link">
+      <sensor name="$(arg prefix)gps_sensor" type="gps">
+      <plugin filename="libgazebo_ros_gps_sensor.so" name="$(arg prefix)gps_plugin">
+          <ros>
+            <namespace>$(arg prefix)</namespace>
+            <remapping>~/out:=gps/data</remapping>
+          </ros>
+        </plugin>
+        <always_on>true</always_on>
+        <update_rate>8</update_rate>
+      </sensor>
+    </gazebo>
+
+  </xacro:if>
+
+  <!-- Optional custom includes. -->
+  <xacro:include filename="$(arg urdf_extras)" />
+  
+  <link name="front_laser">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.1"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="front_laser_joint" type="fixed">
+    <parent link="top_plate_link"/>
+    <child link="front_laser"/>
+    <origin xyz="0.25 0 0.1" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="front_laser">
+    <sensor name="lidar" type="ray">
+      <always_on>true</always_on>
+      <update_rate>10</update_rate>
+      <visualize>true</visualize>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.14159</min_angle>
+            <max_angle>3.14159</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.1</min>
+          <max>13.0</max>
+          <resolution>0.01</resolution>
+        </range>
+      </ray>
+      <plugin name="scan" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <remapping>~/out:=scan</remapping>
+        </ros>
+        <output_type>sensor_msgs/LaserScan</output_type>
+        <frame_name>front_laser</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+  <gazebo>
+  <plugin name="gazebo_ros_init" filename="libgazebo_ros_init.so">
+    <ros>
+       <use_sim_time>true</use_sim_time>
+    </ros>
+  </plugin>
+  </gazebo>
+</robot>

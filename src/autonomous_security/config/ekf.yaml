@@ -1,0 +1,30 @@
+ ekf_filter_node:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 30.0
+    two_d_mode: true
+    publish_tf: true
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: odom
+
+    # 1. WHEEL ODOMETRY: Pozisyon yerine HIZ (Velocity) alıyoruz.
+    # Bu sayede drift birikmez, EKF hızı entegre ederek pozisyonu kendi hesaplar.
+    odom0: /husky_velocity_controller/odom
+    odom0_config: [false, false, false, # Pozisyon kapalı
+                   false, false, false, # Açı kapalı
+                   true,  true,  false, # X ve Y hızı AÇIK (Vx, Vy)
+                   false, false, true,  # Dönüş hızı AÇIK (Vtheta)
+                   false, false, false]
+
+    # 2. IMU: Dönüş açısı ve dönüş hızı için en güvenilir kaynak.
+    imu0: /imu/data
+    imu0_config: [false, false, false,
+                  false, false, true,  # Yaw (Açı) AÇIK
+                  false, false, false,
+                  false, false, true,  # Yaw Rate (Açısal Hız) AÇIK
+                  true,  false, false] # X ivmesi (İsteğe bağlı, ani kalkışlar için)
+
+    imu0_differential: false # orientation kullanıyorsan false kalsın
+    imu0_relative: true      # Robot başladığı yönü 0 kabul eder, drifti azaltır
+    imu0_remove_gravitational_acceleration: true 
