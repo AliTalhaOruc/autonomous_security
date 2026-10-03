@@ -29,13 +29,13 @@ class TrackedTarget:
 class YoloThreatDetector(Node):
     def __init__(self):
         super().__init__('yolo_threat_detector')
-
+        self.frame_count = 0
         # Genel ve Sınıfa Özel Güven Eşikleri (False Positive Engelleme)
         self.default_conf_threshold = 0.60
         self.class_conf_thresholds = {
             'house': 0.80,       # Duvarları ev sanmasını engellemek için yukseltildi
-            'fire_station': 0.70,
-            'soldier': 0.40,
+            'fire_station': 0.80,
+            'soldier': 0.60,
             'tank': 0.75,
             'stop_sign': 0.60
         }
@@ -50,7 +50,7 @@ class YoloThreatDetector(Node):
 
         # Sınıfa Özel Esleme Mesafeleri (Coklu Marker Basımını Engelleme)
         self.class_match_thresholds = {
-            'tank': 5.0,
+            'tank': 5.7,
             'house': 7.0,
             'fire_station': 7.0,
             'soldier': 1.5,
@@ -67,6 +67,7 @@ class YoloThreatDetector(Node):
 
         self.get_logger().info('=== [ADIM 1] YOLO Modeli yukleniyor... ===')
         self.model = YOLO('/home/ali/autonomous_security_ws/src/autonomous_security/models/best.pt') 
+        self.model.to('cuda')
         self.bridge = CvBridge()
 
         self.fx = None
@@ -79,10 +80,12 @@ class YoloThreatDetector(Node):
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
-        self.sub_info = self.create_subscription(CameraInfo, '/camera/camera_info', self.camera_info_callback, 10)
-        self.sub_depth = self.create_subscription(Image, '/camera/depth/image_raw', self.depth_callback, 10)
-        self.sub_rgb = self.create_subscription(Image, '/camera/image_raw', self.rgb_callback, 10)
-
+        self.sub_info = self.create_subscription(
+            CameraInfo, '/camera/camera/camera_info', self.camera_info_callback, 10)
+        self.sub_depth = self.create_subscription(
+            Image, '/camera/camera/depth/image_raw', self.depth_callback, 10)
+        self.sub_rgb = self.create_subscription(
+            Image, '/camera/camera/image_raw', self.rgb_callback, 10)
         self.marker_pub = self.create_publisher(MarkerArray, '/detected_threats', 10)
         self.get_logger().info('=== [ADIM 2] Düğüm başlatıldı. Kamera bekleniyor... ===')
 
@@ -100,6 +103,9 @@ class YoloThreatDetector(Node):
             self.get_logger().error(f'Derinlik donusum hatasi: {e}')
 
     def rgb_callback(self, msg: Image):
+        self.frame_count += 1
+        if self.frame_count % 2 != 0:  # Her 2 kareden 1'ini işle (FPS'i yarıya bölüp GPU'yu rahatlatır)
+            return
         if self.fx is None or self.latest_depth_image is None:
             return
 

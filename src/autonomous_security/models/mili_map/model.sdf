@@ -19,7 +19,7 @@
       </collision>
       <visual name='visual'>
         <!-- GEÇİCİ OLARAK GÖRÜNÜR YAPILDI (transparency 0 yapıldı veya kaldırıldı) -->
-        <transparency>0</transparency> 
+        <transparency>1</transparency> 
         <geometry>
           <box>
             <size>0.5 40.0 3.0</size>
@@ -45,7 +45,7 @@
         </geometry>
       </collision>
       <visual name='visual'>
-        <transparency>0</transparency> 
+        <transparency>1</transparency> 
         <geometry>
           <box>
             <size>0.5 40.0 3.0</size>
@@ -71,7 +71,7 @@
         </geometry>
       </collision>
       <visual name='visual'>
-        <transparency>0</transparency> 
+        <transparency>1</transparency> 
         <geometry>
           <box>
             <size>40.0 0.5 3.0</size>
@@ -97,7 +97,7 @@
         </geometry>
       </collision>
       <visual name='visual'>
-        <transparency>0</transparency> 
+        <transparency>1</transparency> 
         <geometry>
           <box>
             <size>40.0 0.5 3.0</size>
