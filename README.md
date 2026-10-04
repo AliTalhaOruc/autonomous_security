@@ -28,15 +28,7 @@ The system combines **SLAM/Autonomous Mapping** with a multi-sensor perception p
 Demonstrates the Husky UGV autonomously navigating the military complex, detecting targets in real time, and populating color-coded threat markers on RViz using 3D depth fusion.
 
 
-
-<video src="https://raw.githubusercontent.com/AliTalhaOruc/autonomous_security/main/src/autonomous_security/media/demo_patrol_small.mp4" 
-       controls 
-       autoplay 
-       loop 
-       muted 
-       playsinline 
-       width="100%">
-</video>
+<video src="https://github.com/user-attachments/assets/0aa99d98-e885-41e5-a59d-4f037399e8e8" controls autoplay loop muted playsinline width="100%"></video>
 
 ---
 
