@@ -69,6 +69,7 @@ To prevent transient detection glitches (e.g., a wall temporarily misclassified 
 ---
 
 ## 🏗️ Perception & Localization Pipeline Architecture
+```text
 Gazebo RGB-D Camera
               │
     ┌─────────┴─────────┐
@@ -103,10 +104,11 @@ Gazebo RGB-D Camera
 ┌───────────────────────────────┐
 │   RViz Marker Publisher Node  │
 └───────────────────────────────┘
-
+```
 ---
 
 ## 📂 Repository Structure
+```text
 autonomous_security_ws
 │
 ├── src
@@ -125,7 +127,7 @@ autonomous_security_ws
 ├── .gitignore
 ├── requirements.txt             # Python dependencies
 └── README.md
-
+```
 ---
 
 ## 🛠️ Installation & Setup
@@ -140,8 +142,8 @@ autonomous_security_ws
 ### Build Instructions
 
 # Clone the repository
-git clone [https://github.com/AliTalhaOruc/autonomous-security-ugv.git](https://github.com/AliTalhaOruc/autonomous-security-ugv.git)
-cd autonomous_security_ws
+git clone https://github.com/AliTalhaOruc/autonomous_security.git
+cd autonomous_security
 
 # Install dependencies
 rosdep update
