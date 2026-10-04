@@ -29,7 +29,7 @@ Demonstrates the Husky UGV autonomously navigating the military complex, detecti
 
 
 
-<video src="PASTE_YOUR_2X_SPEED_AUTONOMOUS_PATROL_VIDEO_LINK_HERE.mp4" 
+<video src="src/autonomous_security/media/demo_patrol.mp4" 
        controls 
        autoplay 
        loop 
