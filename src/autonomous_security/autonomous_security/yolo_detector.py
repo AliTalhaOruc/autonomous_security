@@ -35,7 +35,7 @@ class YoloThreatDetector(Node):
         self.class_conf_thresholds = {
             'house': 0.80,       # Duvarları ev sanmasını engellemek için yukseltildi
             'fire_station': 0.80,
-            'soldier': 0.60,
+            'soldier': 0.65,
             'tank': 0.75,
             'stop_sign': 0.60
         }
@@ -50,9 +50,9 @@ class YoloThreatDetector(Node):
 
         # Sınıfa Özel Esleme Mesafeleri (Coklu Marker Basımını Engelleme)
         self.class_match_thresholds = {
-            'tank': 5.7,
-            'house': 7.0,
-            'fire_station': 7.0,
+            'tank': 5.8,
+            'house': 10.0,
+            'fire_station': 10.0,
             'soldier': 1.5,
             'stop_sign': 1.2
         }
