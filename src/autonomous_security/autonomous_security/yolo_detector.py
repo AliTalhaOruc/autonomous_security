@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+import os
 import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
-
+from ament_index_python.packages import get_package_share_directory
 from sensor_msgs.msg import Image, CameraInfo
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import PointStamped
@@ -35,7 +36,7 @@ class YoloThreatDetector(Node):
         self.class_conf_thresholds = {
             'house': 0.80,       # Duvarları ev sanmasını engellemek için yukseltildi
             'fire_station': 0.80,
-            'soldier': 0.65,
+            'soldier': 0.68,
             'tank': 0.75,
             'stop_sign': 0.60
         }
@@ -50,7 +51,7 @@ class YoloThreatDetector(Node):
 
         # Sınıfa Özel Esleme Mesafeleri (Coklu Marker Basımını Engelleme)
         self.class_match_thresholds = {
-            'tank': 5.8,
+            'tank': 5.9,
             'house': 10.0,
             'fire_station': 10.0,
             'soldier': 1.5,
@@ -66,9 +67,17 @@ class YoloThreatDetector(Node):
         self.global_id_counter = 1
 
         self.get_logger().info('=== [ADIM 1] YOLO Modeli yukleniyor... ===')
-        self.model = YOLO('/home/ali/autonomous_security_ws/src/autonomous_security/models/best.pt') 
+        
+        
+        pkg_share = get_package_share_directory('autonomous_security')
+        model_path = os.path.join(pkg_share, 'models', 'best.pt')
+        
+        # Modeli yükleme ve GPU'ya taşıma
+        self.model = YOLO(model_path)
         self.model.to('cuda')
+        
         self.bridge = CvBridge()
+        self.get_logger().info(f'=== [ADIM 1] Model Başarıyla Yüklendi: {model_path} ===')
 
         self.fx = None
         self.fy = None
@@ -130,6 +139,39 @@ class YoloThreatDetector(Node):
             u_center = int((x1 + x2) / 2)
             v_center = int((y1 + y2) / 2)
 
+
+            # [YENİ EKLEME] STANDART SAPMA (DEPTH VARIANCE) FILTRESI
+            # Tüm Bounding Box içerisindeki derinlik yamasını kesiyoruz
+            full_depth_patch = self.latest_depth_image[
+                max(0, y1):min(self.latest_depth_image.shape[0], y2),
+                max(0, x1):min(self.latest_depth_image.shape[1], x2)
+            ]
+            
+            # Geçerli derinlik piksellerini filtrele
+            valid_full_depths = full_depth_patch[np.isfinite(full_depth_patch) & (full_depth_patch > 0)].astype(np.float32)
+            
+            if len(valid_full_depths) > 0:
+                # Kamera verisi mm cinsinden ise metreye çeviriyoruz
+                if np.median(valid_full_depths) > 100:
+                    valid_full_depths /= 1000.0
+                
+                # Bounding Box içi derinlik standart sapması
+                depth_std = float(np.std(valid_full_depths))
+                
+                # Sadece 'house' sınıfı için varyans filtresi uygula
+                if class_name == "house":
+                    # Belirlediğimiz güvenli sınır: 0.25
+                    if depth_std < 0.25:
+                        self.get_logger().warn(
+                            f"[ELENDI - DUVAR] Hatalı Ev Tespiti! Std: {depth_std:.3f} < 0.25 | BBox: [{x1},{y1},{x2},{y2}]"
+                        )
+                        continue  # Bu tespiti atla, haritaya marker basma!
+                    else:
+                        self.get_logger().info(
+                            f"[ONAYLANDI - EV] Gerçek Ev! Std: {depth_std:.3f} >= 0.25"
+                        )
+
+            # Mevcut kodunuz: Hedef tespiti ve orta nokta hesabı için küçük ROI kesimi
             h_roi = max(1, int((y2 - y1) * 0.1))
             w_roi = max(1, int((x2 - x1) * 0.1))
             depth_patch = self.latest_depth_image[
@@ -160,6 +202,7 @@ class YoloThreatDetector(Node):
                 self.process_detection(class_name, conf, map_x, map_y, depth_m)
 
         self.publish_locked_markers()
+
 
     def process_detection(self, class_name, conf, x, y, depth_m):
         match_radius = self.class_match_thresholds.get(class_name, 2.0)

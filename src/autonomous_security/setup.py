@@ -56,6 +56,7 @@ setup(
         'console_scripts': [
             'explorer = autonomous_security.explorer:main',
             'yolo_detector = autonomous_security.yolo_detector:main',
+            'drone_detector = autonomous_security.drone_detector:main',
         ],
     },
 )

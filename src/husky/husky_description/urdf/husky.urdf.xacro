@@ -140,7 +140,7 @@
   <gazebo reference="camera_link">
     <sensor name="rgbd_camera" type="depth">
       <always_on>true</always_on>
-      <update_rate>15.0</update_rate>
+      <update_rate>10.0</update_rate>
       <visualize>true</visualize>
 
       <camera>
@@ -170,6 +170,84 @@
         <min_depth>0.1</min_depth>
         <max_depth>12.0</max_depth>
       </plugin>
+    </sensor>
+  </gazebo>
+    <joint name="turret_yaw_joint" type="fixed">
+    <parent link="top_plate_link"/>
+    <child link="turret_yaw_link"/>
+    <origin xyz="0.0 0.0 0.30" rpy="0 0 0"/>
+  </joint>
+
+  <link name="turret_yaw_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.06" length="0.12"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0 0 1 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="turret_pitch_joint" type="fixed">
+    <parent link="turret_yaw_link"/>
+    <child link="turret_camera_link"/>
+    <origin xyz="0 0 0.10" rpy="0 0 0"/>
+  </joint>
+
+  <link name="turret_camera_link">
+    <visual>
+      <geometry>
+        <box size="0.12 0.08 0.06"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </visual>
+  </link>
+
+  <link name="turret_camera_optical"/>
+
+  <joint name="turret_camera_optical_joint" type="fixed">
+    <parent link="turret_camera_link"/>
+    <child link="turret_camera_optical"/>
+    <origin xyz="0.06 0 0"
+            rpy="-1.57079632679 0 -1.57079632679"/>
+  </joint>
+
+  <gazebo reference="turret_camera_link">
+    <sensor type="camera" name="anti_drone_camera">
+
+      <always_on>false</always_on>
+      <update_rate>1</update_rate>
+
+      <camera>
+        <horizontal_fov>0.6</horizontal_fov>
+
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+
+        <clip>
+          <near>0.05</near>
+          <far>18</far>
+        </clip>
+      </camera>
+
+      <plugin name="anti_drone_camera_plugin"
+              filename="libgazebo_ros_camera.so">
+
+        <ros>
+          <namespace>anti_drone</namespace>
+        </ros>
+
+        <camera_name>anti_drone_camera</camera_name>
+        <frame_name>turret_camera_optical</frame_name>
+
+      </plugin>
+
     </sensor>
   </gazebo>
 </robot>

@@ -214,6 +214,12 @@
       <pose>12 4 0 0 0 3.14159</pose>
       <uri>model://soldier</uri>
     </include>
+	<include>
+  <name>benim_iris_dronum</name>
+  <static>true</static> <!-- Kodla konumunu güncelleyeceksen false yapabilirsin -->
+  <pose>5 0 0 0 0 0</pose>
+  <uri>model://iris_sadece_mesh</uri>
+</include>
 
   </model>
 </sdf>
