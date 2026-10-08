@@ -62,7 +62,7 @@ A customized Gazebo Classic environment was created using multiple military and 
 
 The world includes structures, walls, vehicles, vegetation, military targets, and different types of obstacles to evaluate the robot under varied spatial and visual conditions.
 
-<img width="1331" height="1175" alt="Screenshot from 2026-10-03 14-24-59" src="https://github.com/user-attachments/assets/f8b84166-7b40-45f7-b462-7b9760d1383b" />
+<img width="1624" height="1101" alt="Screenshot from 2026-10-09 00-09-51" src="https://github.com/user-attachments/assets/e30ef12c-a398-411a-ab48-9b45d1cbc565" />
 
 ### 3. Custom YOLOv8 Threat Detector & Training
 
