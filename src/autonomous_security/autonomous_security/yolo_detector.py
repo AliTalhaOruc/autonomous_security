@@ -34,8 +34,8 @@ class YoloThreatDetector(Node):
         # Genel ve Sınıfa Özel Güven Eşikleri (False Positive Engelleme)
         self.default_conf_threshold = 0.60
         self.class_conf_thresholds = {
-            'house': 0.80,       # Duvarları ev sanmasını engellemek için yukseltildi
-            'fire_station': 0.80,
+            'house': 0.70,       # Duvarları ev sanmasını engellemek için yukseltildi
+            'fire_station': 0.70,
             'soldier': 0.68,
             'tank': 0.75,
             'stop_sign': 0.60

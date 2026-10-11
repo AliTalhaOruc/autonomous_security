@@ -58,6 +58,7 @@ setup(
             'yolo_detector = autonomous_security.yolo_detector:main',
             'drone_detector = autonomous_security.drone_detector:main',
             'dataset_collector = autonomous_security.dataset_collector:main',
+            'gimbal_tracker = autonomous_security.gimbal_tracker:main',
         ],
     },
 )

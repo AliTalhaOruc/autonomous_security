@@ -1,26 +1,19 @@
 <?xml version="1.0"?>
-
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="husky">
-  <!-- robot name parameter -->
-  <!-- <xacro:arg name="name" default="" /> -->
 
   <xacro:arg name="prefix" default="" />
   <xacro:arg name="gazebo_controllers" default="$(find husky_control)/config/control.yaml" />
 
   <xacro:include filename="$(find husky_description)/urdf/husky_macro.urdf.xacro" />
-
-  <!-- Load husky description -->
   <xacro:husky prefix="$(arg prefix)" />
 
-
   <xacro:if value="$(arg is_sim)">
-
     <gazebo>
       <plugin name="$(arg prefix)gazebo_ros2_control" filename="libgazebo_ros2_control.so">
         <parameters>$(arg gazebo_controllers)</parameters>
         <ros>
-         <use_sim_time>true</use_sim_time>
-       </ros>
+           <use_sim_time>true</use_sim_time>
+         </ros>
       </plugin>
     </gazebo>
 
@@ -52,12 +45,11 @@
         <update_rate>8</update_rate>
       </sensor>
     </gazebo>
-
   </xacro:if>
 
-  <!-- Optional custom includes. -->
   <xacro:include filename="$(arg urdf_extras)" />
   
+  <!-- Lidar Sensörü -->
   <link name="front_laser">
     <visual>
       <geometry>
@@ -67,6 +59,15 @@
         <color rgba="0 0 0 1"/>
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.05" length="0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.2"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
   </link>
 
   <joint name="front_laser_joint" type="fixed">
@@ -104,13 +105,16 @@
       </plugin>
     </sensor>
   </gazebo>
+
   <gazebo>
-  <plugin name="gazebo_ros_init" filename="libgazebo_ros_init.so">
-    <ros>
-       <use_sim_time>true</use_sim_time>
-    </ros>
-  </plugin>
+    <plugin name="gazebo_ros_init" filename="libgazebo_ros_init.so">
+      <ros>
+         <use_sim_time>true</use_sim_time>
+      </ros>
+    </plugin>
   </gazebo>
+
+  <!-- Orijinal RGB-D Sabit Kamera ve Plugin Kısımları -->
   <link name="camera_link">
     <visual>
       <geometry>
@@ -120,6 +124,15 @@
         <color rgba="0.2 0.2 0.2 1"/>
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.03 0.10 0.03"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
   </link>
 
   <joint name="camera_joint" type="fixed">
@@ -128,7 +141,6 @@
     <origin xyz="0.30 0.0 0.15" rpy="0 0 0"/>
   </joint>
 
-  <!-- Optical frame (Python kodunla birebir aynı isim yapıldı) -->
   <link name="camera_color_optical_frame"/>
 
   <joint name="camera_color_optical_joint" type="fixed">
@@ -142,7 +154,6 @@
       <always_on>true</always_on>
       <update_rate>10.0</update_rate>
       <visualize>true</visualize>
-
       <camera>
         <horizontal_fov>1.047198</horizontal_fov>
         <image>
@@ -155,8 +166,6 @@
           <far>12.0</far>
         </clip>
       </camera>
-
-      <!-- ROS 2 Kamera Plugin'i -->
       <plugin name="camera_driver" filename="libgazebo_ros_camera.so">
         <ros>
           <namespace>camera</namespace>
@@ -172,14 +181,20 @@
       </plugin>
     </sensor>
   </gazebo>
-    <joint name="turret_yaw_joint" type="fixed">
+
+  <!-- ================= HAREKETLİ TARET BÖLÜMÜ ================= -->
+
+  <joint name="turret_yaw_joint" type="continuous">
     <parent link="top_plate_link"/>
     <child link="turret_yaw_link"/>
     <origin xyz="0.0 0.0 0.30" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <dynamics damping="0.1" friction="0.05"/>
   </joint>
 
   <link name="turret_yaw_link">
     <visual>
+      <origin xyz="0 0 0.06" rpy="0 0 0"/>
       <geometry>
         <cylinder radius="0.06" length="0.12"/>
       </geometry>
@@ -187,16 +202,31 @@
         <color rgba="0 0 1 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="0 0 0.06" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.12"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <origin xyz="0 0 0.06" rpy="0 0 0"/>
+      <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.001"/>
+    </inertial>
   </link>
 
-  <joint name="turret_pitch_joint" type="fixed">
+  <joint name="turret_pitch_joint" type="revolute">
     <parent link="turret_yaw_link"/>
     <child link="turret_camera_link"/>
-    <origin xyz="0 0 0.10" rpy="0 0 0"/>
+    <origin xyz="0 0 0.12" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="1.57" effort="10.0" velocity="3.0"/>
+    <dynamics damping="0.1" friction="0.05"/>
   </joint>
 
   <link name="turret_camera_link">
     <visual>
+      <origin xyz="0.06 0 0" rpy="0 0 0"/>
       <geometry>
         <box size="0.12 0.08 0.06"/>
       </geometry>
@@ -204,6 +234,17 @@
         <color rgba="1 0 0 1"/>
       </material>
     </visual>
+    <collision>
+      <origin xyz="0.06 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.12 0.08 0.06"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <origin xyz="0.06 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.0005" ixy="0" ixz="0" iyy="0.0008" iyz="0" izz="0.0008"/>
+    </inertial>
   </link>
 
   <link name="turret_camera_optical"/>
@@ -211,43 +252,51 @@
   <joint name="turret_camera_optical_joint" type="fixed">
     <parent link="turret_camera_link"/>
     <child link="turret_camera_optical"/>
-    <origin xyz="0.06 0 0"
-            rpy="-1.57079632679 0 -1.57079632679"/>
+    <origin xyz="0.06 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
   </joint>
 
+  <!-- Gazebo Taret Kamerası Sensörü -->
   <gazebo reference="turret_camera_link">
     <sensor type="camera" name="anti_drone_camera">
-
-      <always_on>false</always_on>
-      <update_rate>1</update_rate>
-
+      <always_on>true</always_on>
+      <update_rate>15.0</update_rate>
       <camera>
-        <horizontal_fov>0.6</horizontal_fov>
-
+        <horizontal_fov>0.8</horizontal_fov>
         <image>
           <width>640</width>
           <height>480</height>
           <format>R8G8B8</format>
         </image>
-
         <clip>
           <near>0.05</near>
           <far>18</far>
         </clip>
       </camera>
-
-      <plugin name="anti_drone_camera_plugin"
-              filename="libgazebo_ros_camera.so">
-
+      <plugin name="anti_drone_camera_plugin" filename="libgazebo_ros_camera.so">
         <ros>
           <namespace>anti_drone</namespace>
         </ros>
-
         <camera_name>anti_drone_camera</camera_name>
         <frame_name>turret_camera_optical</frame_name>
-
       </plugin>
-
     </sensor>
   </gazebo>
+
+  <!-- ================= ROS2 CONTROL EKLEMESİ ================= -->
+  <ros2_control name="TurretSystem" type="system">
+    <hardware>
+      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+    </hardware>
+    <joint name="turret_yaw_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="turret_pitch_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
 </robot>
